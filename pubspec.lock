@@ -75,6 +75,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  huawei_ml_language:
+    dependency: "direct main"
+    description:
+      name: huawei_ml_language
+      sha256: cfd924d4e418e5ef1a2a3ac41bb7a93d42a0e329a8ae36214a788574cb222a4d
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.11.0+300"
   leak_tracker:
     dependency: transitive
     description:
