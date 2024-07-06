@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'sound_detection.dart';
-import 'package:huawei_ml_language/huawei_ml_language.dart';
+
 class Homepage extends StatelessWidget{
   const Homepage({super.key});
 
@@ -14,7 +13,22 @@ class Homepage extends StatelessWidget{
       theme: ThemeData(
         primarySwatch: Colors.lightBlue
       ),
-      home: const SoundDetection(),
+      home: Scaffold(
+        appBar: AppBar(
+          title: const Text('Sound Detector App'),
+          backgroundColor: Colors.lightBlue,
+          foregroundColor: Colors.white,
+          centerTitle: true,
+          actions: [
+           IconButton(
+             onPressed: (){},
+               icon: const Icon(Icons.settings) ) ,
+]
+        ),
+        body: const Center(
+          child: Text('Listening for sounds...'),
+        ),
+      ),
     );
   }
 }
