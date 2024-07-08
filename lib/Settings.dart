@@ -46,36 +46,52 @@ class _SettingsState extends State<Settings> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings'),
-        backgroundColor: Colors.lightBlue,
-        foregroundColor: Colors.white,
-      ),
+          toolbarHeight: 90,
+          title: const Text('Settings'),
+          backgroundColor: Colors.lightBlue,
+          foregroundColor: Colors.white,
+          centerTitle: true,
+          elevation: 0),
       body: Padding(
-        padding: const EdgeInsets.all(100.0),
+        padding: const EdgeInsets.all(30.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            SwitchListTile(
-              title: const Text('Crying Baby'),
-              secondary: SvgPicture.asset(
-                'assets/icons/cryingbaby.svg',
-                width: 1000.0,
-                height: 50.0,
-
+            Container(
+              padding: const EdgeInsets.all(10.0),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.blue, width: 5.0),
+                borderRadius: BorderRadius.circular(30.0),
               ),
-              value: _cryingBaby,
-              onChanged: (value) {
-                _updatePreference('cryingBaby', value);
-              },
+              child: SwitchListTile(
+                title: const Text('Crying Baby'),
+                secondary: SvgPicture.asset(
+                  'assets/icons/cryingbaby.svg',
+                  width: 30.0,
+                  height: 30.0,
+                ),
+                value: _cryingBaby,
+                onChanged: (value) {
+                  _updatePreference('cryingBaby', value);
+                },
+              ),
             ),
-            const SizedBox(height: 100.0), // Adjusted space between widgets
-            SwitchListTile(
-              title: const Text('Shouting-pet'),
-              secondary: const Icon(Icons.pets, size: 50),
-              value: _shoutingPet,
-              onChanged: (value) {
-                _updatePreference('Shouting-pet', value);
-              },
+            const SizedBox(height: 50.0), // Adjusted space between widgets
+            Container(
+              width: 1000,
+              padding: const EdgeInsets.all(12.0),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.blue, width: 5.0),
+                borderRadius: BorderRadius.circular(30.0),
+              ),
+              child: SwitchListTile(
+                title: const Text('Shouting-pet'),
+                secondary: const Icon(Icons.pets, size: 30),
+                value: _shoutingPet,
+                onChanged: (value) {
+                  _updatePreference('Shouting-pet', value);
+                },
+              ),
             ),
           ],
         ),

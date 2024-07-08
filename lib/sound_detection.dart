@@ -61,11 +61,43 @@ class _SoundDetectionState extends State<SoundDetection> {
             const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.earbuds_sharp ,size: 40,),
+                Icon(Icons.earbuds_sharp, size: 40),
                 SizedBox(width: 10.0),
                 Text(
                   'Listening for sounds...',
-                  style: TextStyle(fontSize: 24.0,fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const SizedBox(height: 80.0),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  height: 230.0,
+                  width: 350,
+                  padding: const EdgeInsets.all(20.0),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.blue, width: 10.0),
+
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    children: [
+                      SvgPicture.asset(
+                        'assets/icons/cryingbaby.svg',
+                        width: 30.0,
+                        height: 60.0,
+                      ),
+                      const SizedBox(width: 10.0),
+                      Text(
+                        _cryingBaby
+                            ? 'Detecting crying Baby sound'
+                            : 'Not detecting  Baby sound',
+                        style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -73,35 +105,30 @@ class _SoundDetectionState extends State<SoundDetection> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SvgPicture.asset(
-                  'assets/icons/cryingbaby.svg',
-                  width: 1000.0,
-                  height: 50.0,
-                ),
-                const SizedBox(width: 10.0),
-                Text(
-                  _cryingBaby
-                      ? 'Crying Baby setting is ON'
-                      : 'Crying Baby setting is OFF',
-                  style: const TextStyle(fontSize: 18.0,fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10.0),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  _shoutingPet ? Icons.pets : Icons.pets_outlined,
-                  size: 30.0,
-                  color: _shoutingPet ? Colors.green : Colors.red,
-                ),
-                const SizedBox(width: 10.0),
-                Text(
-                  _shoutingPet
-                      ? 'Shouting Pet setting is ON'
-                      : 'Shouting Pet setting is OFF',
-                  style: const TextStyle(fontSize: 18.0,fontWeight: FontWeight.bold),
+                Container(
+                  height: 230.0,
+                  width: 350,
+                  padding: const EdgeInsets.all(20.0),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.blue, width: 10.0),
+                    borderRadius: BorderRadius.circular(20.0),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        _shoutingPet ? Icons.pets : Icons.pets_outlined,
+                        size: 40.0,
+                        color: _shoutingPet ? Colors.green : Colors.red,
+                      ),
+                      const SizedBox(width: 2.0),
+                      Text(
+                        _shoutingPet
+                            ? 'Detecting Shouting Pet sound'
+                            : 'Not DetectingShouting Pet sound',
+                        style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
