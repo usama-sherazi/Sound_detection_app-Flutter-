@@ -38,6 +38,9 @@ dependencies:
   huawei_ml_language: ^3.11.0+300
   shared_preferences: ^2.2.3
   flutter_svg: ^2.0.10+1
+  mic_stream: ^0.7.1+2
+  flutter_local_notifications: ^17.2.1+1
+  wave: ^0.2.2
 
 
 dev_dependencies:
