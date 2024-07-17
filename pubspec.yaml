@@ -41,6 +41,7 @@ dependencies:
   mic_stream: ^0.7.1+2
   flutter_local_notifications: ^17.2.1+1
   wave: ^0.2.2
+  fluttertoast: ^8.2.6
 
 
 dev_dependencies:

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sound_detection_app/Settings.dart';
 import 'package:mic_stream/mic_stream.dart';
 import 'package:flutter/services.dart';
 import 'package:huawei_ml_language/huawei_ml_language.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'dart:async';
+
+import 'Settings.dart';
 
 class SoundDetection extends StatefulWidget {
   const SoundDetection({super.key});
@@ -24,12 +26,8 @@ class _SoundDetectionState extends State<SoundDetection> {
   void initState() {
     super.initState();
     _loadPreferences();
+    _initSoundDetector();
     _initMicStream();
-
-    // Initialize Huawei ML Sound Detector
-    _mlSoundDetector = MLSoundDetector();
-    _mlSoundDetector.setSoundDetectListener(onDetection);
-    _mlSoundDetector.start();
   }
 
   void _loadPreferences() async {
@@ -42,27 +40,36 @@ class _SoundDetectionState extends State<SoundDetection> {
     _manageMicStream();
   }
 
+  void _initSoundDetector() {
+    _mlSoundDetector = MLSoundDetector();
+    _mlSoundDetector.setSoundDetectListener(onDetection);
+  }
+
   void _initMicStream() async {
     try {
       var stream = await MicStream.microphone(
         sampleRate: 44100,
         audioFormat: AudioFormat.ENCODING_PCM_16BIT,
       );
-      _micStreamSubscription = stream.listen(_processMicData);
+      _micStreamSubscription = stream.listen((data) {
+        _processMicData(data);
+        // Pass data to Huawei sound detector here if needed
+      });
     } on PlatformException catch (e) {
       print("Error initializing microphone stream: $e");
     }
   }
 
   void _processMicData(List<int> data) {
-    // Process microphone data here if needed
     // You can implement additional logic here if required
   }
 
   void _manageMicStream() {
     if (_cryingBaby || _shoutingPet) {
+      _mlSoundDetector.start();
       _micStreamSubscription?.resume();
     } else {
+      _mlSoundDetector.stop();
       _micStreamSubscription?.pause();
     }
   }
@@ -85,7 +92,6 @@ class _SoundDetectionState extends State<SoundDetection> {
 
     if (result != null) {
       setState(() {
-        // Update based on detection result
         _cryingBaby = result == MLSoundDetectConstants.SOUND_EVENT_TYPE_BABY_CRY;
         _shoutingPet = result == MLSoundDetectConstants.SOUND_EVENT_TYPE_BARK;
 
@@ -101,14 +107,21 @@ class _SoundDetectionState extends State<SoundDetection> {
   }
 
   void _showNotification(String title, String body) {
-
-    print('$title: $body');
+    Fluttertoast.showToast(
+      msg: "$title: $body",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 1,
+      backgroundColor: Colors.black,
+      textColor: Colors.white,
+      fontSize: 16.0,
+    );
   }
 
   @override
   void dispose() {
     _micStreamSubscription?.cancel();
-    _mlSoundDetector.destroy(); // Release resources when the widget is disposed
+    _mlSoundDetector.destroy();
     super.dispose();
   }
 

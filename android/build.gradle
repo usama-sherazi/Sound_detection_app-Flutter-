@@ -1,10 +1,27 @@
-allprojects {
+buildscript {
     repositories {
         google()
-        mavenCentral()
+        jcenter()
+        // Configure the Maven repository address for the HMS Core SDK.
+        maven {url 'https://developer.huawei.com/repo/'}
+    }
+    dependencies {
+
+        // Add the Android Gradle plugin configuration. You need to replace {version} with the actual Gradle plugin version, for example, 7.0.1.
+        classpath 'com.android.tools.build:gradle:7.0.4'
+        // Add the AppGallery Connect plugin configuration. Please refer to AppGallery Connect Plugin Dependency to select a proper plugin version.
+        classpath 'com.huawei.agconnect:agcp:1.6.0.300'
     }
 }
 
+allprojects {
+    repositories {
+        google()
+        jcenter()
+        // Configure the Maven repository address for the HMS Core SDK.
+        maven {url 'https://developer.huawei.com/repo/'}
+    }
+}
 rootProject.buildDir = "../build"
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"

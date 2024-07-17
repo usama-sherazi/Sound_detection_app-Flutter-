@@ -38,6 +38,11 @@
             android:name="flutterEmbedding"
             android:value="2" />
 
+        <!-- Meta-data for the API key -->
+        <meta-data
+            android:name="com.huawei.hms.client.appid"
+            android:value="DQEDANAD6nkfJGf/Z0K2k9ZVDg1FfjlJ52Txhtc0vYrqGGvkSCkqnxN/sSEkaFkQoIJEqYAw24Xsls5lUdrJQ0gjOcieino8Cnoreg==" />
+
     </application>
 
     <!-- Permission queries for specific Android features -->
