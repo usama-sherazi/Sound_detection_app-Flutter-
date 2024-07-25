@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -6,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:huawei_ml_language/huawei_ml_language.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'dart:async';
+import 'package:abto_voip_sdk/sip_wrapper.dart';
 
 import 'Settings.dart';
 
@@ -22,12 +25,52 @@ class _SoundDetectionState extends State<SoundDetection> {
   StreamSubscription<List<int>>? _micStreamSubscription;
   late MLSoundDetector _mlSoundDetector;
 
+
+  bool _isCallActive = false;
+  final String _callNumber = '901';
+
   @override
   void initState() {
     super.initState();
+    _initializeSipWrapper();
     _loadPreferences();
     _initSoundDetector();
     _initMicStream();
+  }
+
+  void _initializeSipWrapper() {
+    SipWrapper.wrapper.init();
+
+    if (Platform.isAndroid) {
+      SipWrapper.wrapper.setLicense(
+          'Trial_dostmhd@gmail.com_Android-D23D-F747-ABDA4AB9-7081-D1D6-C378-2D5BC712901E',
+          'vRjZgZsVIfkqIayDzfLAxeMB5vOFxFzUy8SFGS+9qGlL4BhnZ3UCX9pl8YWfAwHIrmPfOmaihiREcVnrr0suqg==');
+    } else if (Platform.isIOS) {
+      SipWrapper.wrapper.setLicense('iosLicenseUserId', 'iosLicenseKey');
+    }
+
+    SipWrapper.wrapper.register(
+        '192.168.100.19', '', '905', '1234', '905', 'Sound detection', 3600);
+
+    SipWrapper.wrapper.registerListener = RegisterListener(onRegistered: () {
+      print('SIP Registered successfully');
+    }, onRegistrationFailed: () {
+      print('SIP Registration failed');
+    }, onUnregistered: () {
+      print('SIP Unregistered');
+    });
+
+    SipWrapper.wrapper.callListener = CallListener(callConnected: (number) {
+      print('Call connected with number: $number');
+      setState(() {
+        _isCallActive = true;
+      });
+    }, callDisconnected: () {
+      print('Call disconnected');
+      setState(() {
+        _isCallActive = false;
+      });
+    });
   }
 
   void _loadPreferences() async {
@@ -53,7 +96,6 @@ class _SoundDetectionState extends State<SoundDetection> {
       );
       _micStreamSubscription = stream.listen((data) {
         _processMicData(data);
-        // Pass data to Huawei sound detector here if needed
       });
     } on PlatformException catch (e) {
       print("Error initializing microphone stream: $e");
@@ -61,17 +103,32 @@ class _SoundDetectionState extends State<SoundDetection> {
   }
 
   void _processMicData(List<int> data) {
-    // You can implement additional logic here if required
+    // Implement additional logic if needed
   }
 
   void _manageMicStream() {
     if (_cryingBaby || _shoutingPet) {
       _mlSoundDetector.start();
       _micStreamSubscription?.resume();
+      if (!_isCallActive) {
+        _startCall();
+      }
     } else {
       _mlSoundDetector.stop();
       _micStreamSubscription?.pause();
+      if (_isCallActive) {
+        _endCall();
+      }
     }
+  }
+
+  void _startCall() {
+    SipWrapper.wrapper
+        .startCall(_callNumber, false);
+  }
+
+  void _endCall() {
+    SipWrapper.wrapper.endCall();
   }
 
   void _openSettingsOverlay(BuildContext context) async {
@@ -92,7 +149,8 @@ class _SoundDetectionState extends State<SoundDetection> {
 
     if (result != null) {
       setState(() {
-        _cryingBaby = result == MLSoundDetectConstants.SOUND_EVENT_TYPE_BABY_CRY;
+        _cryingBaby =
+            result == MLSoundDetectConstants.SOUND_EVENT_TYPE_BABY_CRY;
         _shoutingPet = result == MLSoundDetectConstants.SOUND_EVENT_TYPE_BARK;
 
         if (_cryingBaby) {
@@ -102,6 +160,8 @@ class _SoundDetectionState extends State<SoundDetection> {
         if (_shoutingPet) {
           _showNotification('Sound Detected', 'Shouting pet sound detected');
         }
+
+        _manageMicStream();
       });
     }
   }
@@ -122,6 +182,7 @@ class _SoundDetectionState extends State<SoundDetection> {
   void dispose() {
     _micStreamSubscription?.cancel();
     _mlSoundDetector.destroy();
+    SipWrapper.wrapper.unregister();
     super.dispose();
   }
 
