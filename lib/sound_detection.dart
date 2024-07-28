@@ -43,14 +43,16 @@ class _SoundDetectionState extends State<SoundDetection> {
 
     if (Platform.isAndroid) {
       SipWrapper.wrapper.setLicense(
-          'Trial_dostmhd@gmail.com_Android-D23D-F747-ABDA4AB9-7081-D1D6-C378-2D5BC712901E',
-          'vRjZgZsVIfkqIayDzfLAxeMB5vOFxFzUy8SFGS+9qGlL4BhnZ3UCX9pl8YWfAwHIrmPfOmaihiREcVnrr0suqg==');
+          '{Trial0e81_Android-D249-144A-ABEB5BD1-B97D-484B-BFEA-DA604244101E}',
+          '{AufGKw0AgccH6hw/qP88p6K/O33xQGlwF3BCpGLzY6s9w2xzti0JHPOBe9saTPjoHPUnaRwHXO98OjA4bmx/Og==}'
+      );
     } else if (Platform.isIOS) {
-      SipWrapper.wrapper.setLicense('iosLicenseUserId', 'iosLicenseKey');
+      SipWrapper.wrapper.setLicense('{Trial0e81_iOS-D249-147A-BBEB5BD1-B97D-484B-BFEA-DA604244101E}',
+          '{Ix6BNIR+1jeZRkZ17CQ6LsHEgu9l7+md9CjIM0N94cbErGCcDS01hcEvCdfw6W4p037IkZpEwoCBfzUaMfYmZg==}');
     }
 
     SipWrapper.wrapper.register(
-        '192.168.100.19', '', '905', '1234', '905', 'Sound detection', 3600);
+        '192.168.100.19', '', '905', '1234', '', 'Flutter APP', 3600);
 
     SipWrapper.wrapper.registerListener = RegisterListener(onRegistered: () {
       print('SIP Registered successfully');
@@ -60,7 +62,7 @@ class _SoundDetectionState extends State<SoundDetection> {
       print('SIP Unregistered');
     });
 
-    SipWrapper.wrapper.callListener = CallListener(callConnected: (number) {
+   /* SipWrapper.wrapper.callListener = CallListener(callConnected: (number) {
       print('Call connected with number: $number');
       setState(() {
         _isCallActive = true;
@@ -70,7 +72,7 @@ class _SoundDetectionState extends State<SoundDetection> {
       setState(() {
         _isCallActive = false;
       });
-    });
+    });*/
   }
 
   void _loadPreferences() async {
@@ -110,15 +112,15 @@ class _SoundDetectionState extends State<SoundDetection> {
     if (_cryingBaby || _shoutingPet) {
       _mlSoundDetector.start();
       _micStreamSubscription?.resume();
-      if (!_isCallActive) {
+    /*  if (!_isCallActive) {
         _startCall();
-      }
+      }*/
     } else {
       _mlSoundDetector.stop();
       _micStreamSubscription?.pause();
-      if (_isCallActive) {
+     /* if (_isCallActive) {
         _endCall();
-      }
+      }*/
     }
   }
 

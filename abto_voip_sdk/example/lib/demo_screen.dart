@@ -41,18 +41,21 @@ class DemoScreenState extends State<MyHomePage> {
 
   // Constructor
   DemoScreenState() {
-    SipWrapper.wrapper.init();
+    SipWrapper.wrapper.init();/*
+    {Trial0e81_Android-D249-144A-ABEB5BD1-B97D-484B-BFEA-DA604244101E}
+    {AufGKw0AgccH6hw/qP88p6K/O33xQGlwF3BCpGLzY6s9w2xzti0JHPOBe9saTPjoHPUnaRwHXO98OjA4bmx/Og==}
+
+    {Trial0e81_iOS-D249-147A-BBEB5BD1-B97D-484B-BFEA-DA604244101E}
+    {Ix6BNIR+1jeZRkZ17CQ6LsHEgu9l7+md9CjIM0N94cbErGCcDS01hcEvCdfw6W4p037IkZpEwoCBfzUaMfYmZg==}*/
 
     if (Platform.isAndroid) {
       SipWrapper.wrapper.setLicense(
-          "{YOUR_ANDROID_USER_ID}",
-          "{YOUR_ANDROID_LICENSE_KEY}"
+          '{Trial0e81_Android-D249-144A-ABEB5BD1-B97D-484B-BFEA-DA604244101E}',
+          '{AufGKw0AgccH6hw/qP88p6K/O33xQGlwF3BCpGLzY6s9w2xzti0JHPOBe9saTPjoHPUnaRwHXO98OjA4bmx/Og==}'
       );
     } else if (Platform.isIOS) {
-      SipWrapper.wrapper.setLicense(
-          "{YOUR_IOS_USER_ID}",
-          "{YOUR_IOS_LICENSE_KEY}"
-      );
+      SipWrapper.wrapper.setLicense('{Trial0e81_iOS-D249-147A-BBEB5BD1-B97D-484B-BFEA-DA604244101E}',
+          '{Ix6BNIR+1jeZRkZ17CQ6LsHEgu9l7+md9CjIM0N94cbErGCcDS01hcEvCdfw6W4p037IkZpEwoCBfzUaMfYmZg==}');
     }
 
     getLibVersion();
@@ -142,21 +145,21 @@ class DemoScreenState extends State<MyHomePage> {
                     Text('Login:'),
                     TextFormField(
                       controller: teLogin = TextEditingController(
-                        text: "" // You can put here your test credentials
+                        text: "105" // You can put here your test credentials
                       ),
                     ),
                     SizedBox(height: 15),
                     Text('Password:'),
                     TextFormField(
                       controller: tePass = TextEditingController(
-                          text: "" // You can put here your test credentials
+                          text: "xxx105" // You can put here your test credentials
                       ),
                     ),
                     SizedBox(height: 15),
                     Text('Domain:'),
                     TextFormField(
                       controller: teDomain = TextEditingController(
-                          text: "" // You can put here your test credentials
+                          text: "192.168.1.18" // You can put here your test credentials
                       ),
                     ),
                     SizedBox(height: 15),

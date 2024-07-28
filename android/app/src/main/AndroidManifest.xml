@@ -6,11 +6,10 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
-        android:name="${applicationName}"
+        android:name="org.abtollc.sdk.AbtoApplication"
         android:label="sound_detection_app"
         android:icon="@mipmap/ic_launcher"
-
-        tools:replace="android:name">
+        >
 
         <!-- Your existing application setup -->
 
