@@ -32,8 +32,11 @@ class _SoundDetectionState extends State<SoundDetection> {
   late MLSoundDetector _mlSoundDetector;
 
   bool _isCallActive = false;
-  String _detectedSound = ''; // New state variable for detected sound
+  String _detectedSound = 'No sound'; // New state variable for detected sound
   final ValueNotifier<String> _registeration_status = ValueNotifier<String>("--");
+  final ValueNotifier<String> _detection_status = ValueNotifier<String>("--");
+  final ValueNotifier<String> _detection_sound = ValueNotifier<String>("No sound");
+  final ValueNotifier<String> _call_status = ValueNotifier<String>("");
 
   @override
   void initState() {
@@ -95,17 +98,19 @@ class _SoundDetectionState extends State<SoundDetection> {
       setState(() {
         _isCallActive = true;
         _registeration_status.value = "SIP on Active Call";
+        _call_status.value="connected $number";
       });
     }, callDisconnected: () {
       print('Call disconnected');
+      _call_status.value="";
       setState(() {
         _isCallActive = false;
-        if (_isRegistered)
+       /* if (_isRegistered)
           _registeration_status.value = "SIP on Active Call";
         else if (_isRegistering)
           _registeration_status.value = "SIP Registering";
         else
-          _registeration_status.value = "SIP Registeration failed";
+          _registeration_status.value = "SIP Registeration failed";*/
       });
     });
   }
@@ -126,6 +131,7 @@ class _SoundDetectionState extends State<SoundDetection> {
 
   void _initSoundDetector() {
     _mlSoundDetector = MLSoundDetector();
+    _detection_status.value="detection started";
     _mlSoundDetector.setSoundDetectListener(onDetection);
   }
 
@@ -151,9 +157,11 @@ class _SoundDetectionState extends State<SoundDetection> {
     if (_cryingBaby || _shoutingPet || _laughing) {
       _mlSoundDetector.start();
       _micStreamSubscription?.resume();
+      _detection_status.value="detection started";
     } else {
       _mlSoundDetector.stop();
       _micStreamSubscription?.pause();
+      _detection_status.value="detection stoped";
     }
   }
 
@@ -171,6 +179,7 @@ class _SoundDetectionState extends State<SoundDetection> {
 
       if (callNumber != null && callNumber.isNotEmpty) {
         SipWrapper.wrapper.startCall(callNumber, false);
+        _call_status.value="calling $callNumber";
       }
     }
   }
@@ -178,6 +187,7 @@ class _SoundDetectionState extends State<SoundDetection> {
   void _endCall() {
     if (_isCallActive) {
       SipWrapper.wrapper.endCall();
+      _call_status.value="";
     }
   }
 
@@ -209,6 +219,7 @@ class _SoundDetectionState extends State<SoundDetection> {
           _startCall('cryingBaby');
         } else if (_shoutingPet) {
           _detectedSound = 'Shouting Pet';
+
           _showNotification('Sound Detected', 'Shouting pet sound detected');
           _startCall('shoutingPet');
         } else if (_laughing) {
@@ -216,9 +227,9 @@ class _SoundDetectionState extends State<SoundDetection> {
           _showNotification('Sound Detected', 'Laughing sound detected');
           _startCall('laughing');
         } else {
-          _detectedSound = ''; // Reset if no sound detected
+          _detectedSound = 'No sound'; // Reset if no sound detected
         }
-
+        _detection_sound.value=_detectedSound;
         _manageMicStream();
       });
     }
@@ -240,6 +251,7 @@ class _SoundDetectionState extends State<SoundDetection> {
   void dispose() {
     _micStreamSubscription?.cancel();
     _mlSoundDetector.destroy();
+    _detection_status.value="detection stoped";
     SipWrapper.wrapper.unregister();
     super.dispose();
   }
@@ -358,13 +370,39 @@ class _SoundDetectionState extends State<SoundDetection> {
                     ),
             ),
           ),
-          const SizedBox(height: 20.0),
+          const SizedBox(height: 80.0),
           ValueListenableBuilder<String >(
             valueListenable: _registeration_status,
             builder: (BuildContext context, String value,child) {
               return Text(
-                '$value',
-               // style: Theme.of(context).textTheme.headline4,
+                "SIP: $value",
+                style: const TextStyle(
+                  fontSize: 15.0,
+                  fontWeight: FontWeight.bold,
+                ),
+              );
+            },
+          ), const SizedBox(height: 10.0),
+          ValueListenableBuilder<String >(
+            valueListenable: _detection_status,
+            builder: (BuildContext context, String value,child) {
+              return Text(
+                "SD: $value",
+                style: const TextStyle(
+                  fontSize: 15.0,
+                  fontWeight: FontWeight.bold,
+                ),
+              );
+            },
+          ), ValueListenableBuilder<String >(
+            valueListenable: _call_status,
+            builder: (BuildContext context, String value,child) {
+              return Text(
+                "$value",
+                style: const TextStyle(
+                  fontSize: 15.0,
+                  fontWeight: FontWeight.bold,
+                ),
               );
             },
           ),
