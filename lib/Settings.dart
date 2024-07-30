@@ -136,7 +136,7 @@ class _SettingsState extends State<Settings> {
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter a password';
-                    } else if (value.length != 4) {
+                    } else if (value.length < 4) {
                       return 'Password must be exactly 4 characters';
                     }
                     return null;

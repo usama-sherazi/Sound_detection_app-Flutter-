@@ -44,8 +44,6 @@ class _SoundDetectionState extends State<SoundDetection> {
     String password = prefs.getString('password') ?? '';
     String domain = prefs.getString('domain') ?? '';
 
-    print('SIP Details - Username: $username, Password: $password, Domain: $domain');
-
     if (username.isEmpty || password.isEmpty || domain.isEmpty) {
       print('SIP registration details are missing');
       return;
