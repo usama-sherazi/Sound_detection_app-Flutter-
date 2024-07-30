@@ -145,21 +145,21 @@ class DemoScreenState extends State<MyHomePage> {
                     Text('Login:'),
                     TextFormField(
                       controller: teLogin = TextEditingController(
-                        text: "105" // You can put here your test credentials
+                        text: "905" // You can put here your test credentials
                       ),
                     ),
                     SizedBox(height: 15),
                     Text('Password:'),
                     TextFormField(
                       controller: tePass = TextEditingController(
-                          text: "xxx105" // You can put here your test credentials
+                          text: "1234" // You can put here your test credentials
                       ),
                     ),
                     SizedBox(height: 15),
                     Text('Domain:'),
                     TextFormField(
                       controller: teDomain = TextEditingController(
-                          text: "192.168.1.18" // You can put here your test credentials
+                          text: "192.168.100.19" // You can put here your test credentials
                       ),
                     ),
                     SizedBox(height: 15),

@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,7 +8,6 @@ import 'package:huawei_ml_language/huawei_ml_language.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'dart:async';
 import 'package:abto_voip_sdk/sip_wrapper.dart';
-
 import 'Settings.dart';
 
 class SoundDetection extends StatefulWidget {
@@ -22,12 +20,14 @@ class SoundDetection extends StatefulWidget {
 class _SoundDetectionState extends State<SoundDetection> {
   bool _cryingBaby = false;
   bool _shoutingPet = false;
+  bool _laughing = false; // Added for laughing detection
+  bool _isRegistering = true;
+  bool _isRegistered = false;
   StreamSubscription<List<int>>? _micStreamSubscription;
   late MLSoundDetector _mlSoundDetector;
 
-
   bool _isCallActive = false;
-  final String _callNumber = '901';
+
 
   @override
   void initState() {
@@ -38,7 +38,19 @@ class _SoundDetectionState extends State<SoundDetection> {
     _initMicStream();
   }
 
-  void _initializeSipWrapper() {
+  void _initializeSipWrapper() async {
+    final prefs = await SharedPreferences.getInstance();
+    String username = prefs.getString('username') ?? '';
+    String password = prefs.getString('password') ?? '';
+    String domain = prefs.getString('domain') ?? '';
+
+    print('SIP Details - Username: $username, Password: $password, Domain: $domain');
+
+    if (username.isEmpty || password.isEmpty || domain.isEmpty) {
+      print('SIP registration details are missing');
+      return;
+    }
+
     SipWrapper.wrapper.init();
 
     if (Platform.isAndroid) {
@@ -47,22 +59,36 @@ class _SoundDetectionState extends State<SoundDetection> {
           '{AufGKw0AgccH6hw/qP88p6K/O33xQGlwF3BCpGLzY6s9w2xzti0JHPOBe9saTPjoHPUnaRwHXO98OjA4bmx/Og==}'
       );
     } else if (Platform.isIOS) {
-      SipWrapper.wrapper.setLicense('{Trial0e81_iOS-D249-147A-BBEB5BD1-B97D-484B-BFEA-DA604244101E}',
-          '{Ix6BNIR+1jeZRkZ17CQ6LsHEgu9l7+md9CjIM0N94cbErGCcDS01hcEvCdfw6W4p037IkZpEwoCBfzUaMfYmZg==}');
+      SipWrapper.wrapper.setLicense(
+          '{Trial0e81_iOS-D249-147A-BBEB5BD1-B97D-484B-BFEA-DA604244101E}',
+          '{Ix6BNIR+1jeZRkZ17CQ6LsHEgu9l7+md9CjIM0N94cbErGCcDS01hcEvCdfw6W4p037IkZpEwoCBfzUaMfYmZg==}'
+      );
     }
 
     SipWrapper.wrapper.register(
-        '192.168.100.19', '', '905', '1234', '', 'Flutter APP', 3600);
+        domain, '', username, password, '', 'Flutter_APP', 3600
+    );
 
     SipWrapper.wrapper.registerListener = RegisterListener(onRegistered: () {
       print('SIP Registered successfully');
+      setState(() {
+        _isRegistered = true;
+        _isRegistering = false;
+      });
     }, onRegistrationFailed: () {
       print('SIP Registration failed');
+      setState(() {
+        _isRegistering = false;
+      });
     }, onUnregistered: () {
       print('SIP Unregistered');
+      setState(() {
+        _isRegistered = false;
+        _isRegistering = false;
+      });
     });
 
-   /* SipWrapper.wrapper.callListener = CallListener(callConnected: (number) {
+    SipWrapper.wrapper.callListener = CallListener(callConnected: (number) {
       print('Call connected with number: $number');
       setState(() {
         _isCallActive = true;
@@ -72,14 +98,15 @@ class _SoundDetectionState extends State<SoundDetection> {
       setState(() {
         _isCallActive = false;
       });
-    });*/
+    });
   }
-
   void _loadPreferences() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _cryingBaby = prefs.getBool('cryingBaby') ?? false;
       _shoutingPet = prefs.getBool('Shouting-pet') ?? false;
+      _laughing = prefs.getBool('laughing') ?? false; // Load laughing preference
+
     });
 
     _manageMicStream();
@@ -109,28 +136,37 @@ class _SoundDetectionState extends State<SoundDetection> {
   }
 
   void _manageMicStream() {
-    if (_cryingBaby || _shoutingPet) {
+    if (_cryingBaby || _shoutingPet || _laughing) {
       _mlSoundDetector.start();
       _micStreamSubscription?.resume();
-    /*  if (!_isCallActive) {
-        _startCall();
-      }*/
     } else {
       _mlSoundDetector.stop();
       _micStreamSubscription?.pause();
-     /* if (_isCallActive) {
-        _endCall();
-      }*/
     }
   }
 
-  void _startCall() {
-    SipWrapper.wrapper
-        .startCall(_callNumber, false);
+  Future<void> _startCall(String soundType) async {
+    if (_isRegistered && !_isCallActive) {
+      final prefs = await SharedPreferences.getInstance();
+      String? callNumber;
+      if (soundType == 'cryingBaby') {
+        callNumber = prefs.getString('phoneCryingBaby');
+      } else if (soundType == 'shoutingPet') {
+        callNumber = prefs.getString('phoneShoutingPet');
+      } else if (soundType == 'laughing') {
+        callNumber = prefs.getString('phoneLaughing');
+      }
+
+      if (callNumber != null && callNumber.isNotEmpty) {
+        SipWrapper.wrapper.startCall(callNumber, false);
+      }
+    }
   }
 
   void _endCall() {
-    SipWrapper.wrapper.endCall();
+    if (_isCallActive) {
+      SipWrapper.wrapper.endCall();
+    }
   }
 
   void _openSettingsOverlay(BuildContext context) async {
@@ -151,9 +187,9 @@ class _SoundDetectionState extends State<SoundDetection> {
 
     if (result != null) {
       setState(() {
-        _cryingBaby =
-            result == MLSoundDetectConstants.SOUND_EVENT_TYPE_BABY_CRY;
+        _cryingBaby = result == MLSoundDetectConstants.SOUND_EVENT_TYPE_BABY_CRY;
         _shoutingPet = result == MLSoundDetectConstants.SOUND_EVENT_TYPE_BARK;
+        _laughing = result == MLSoundDetectConstants.SOUND_EVENT_TYPE_LAUGHTER;
 
         if (_cryingBaby) {
           _showNotification('Sound Detected', 'Crying baby sound detected');
@@ -161,6 +197,18 @@ class _SoundDetectionState extends State<SoundDetection> {
 
         if (_shoutingPet) {
           _showNotification('Sound Detected', 'Shouting pet sound detected');
+        }
+
+        if (_laughing) {
+          _showNotification('Sound Detected', 'Laughing sound detected');
+        }
+
+        if (_cryingBaby) {
+          _startCall('cryingBaby');
+        } else if (_shoutingPet) {
+          _startCall('shoutingPet');
+        } else if (_laughing) {
+          _startCall('laughing');
         }
 
         _manageMicStream();
@@ -218,7 +266,31 @@ class _SoundDetectionState extends State<SoundDetection> {
                 ),
               ],
             ),
-            const SizedBox(height: 80.0),
+            const SizedBox(height: 20.0),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (_cryingBaby)
+                  SvgPicture.asset(
+                    'assets/icons/cryingbaby.svg',
+                    width: 50.0,
+                    height: 50.0,
+                  ),
+                if (_shoutingPet)
+                  const Icon(
+                    Icons.pets,
+                    size: 50.0,
+                    color: Colors.green,
+                  ),
+                if (_laughing)
+                  const Icon(
+                    Icons.sentiment_satisfied,
+                    size: 50.0,
+                    color: Colors.yellow,
+                  ),
+              ],
+            ),
+            const SizedBox(height: 20.0),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -227,6 +299,7 @@ class _SoundDetectionState extends State<SoundDetection> {
                   width: 350,
                   padding: const EdgeInsets.all(20.0),
                   decoration: BoxDecoration(
+
                     border: Border.all(color: Colors.blue, width: 10.0),
                     borderRadius: BorderRadius.circular(20),
                   ),
@@ -234,20 +307,7 @@ class _SoundDetectionState extends State<SoundDetection> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        if (_cryingBaby)
-                          SvgPicture.asset(
-                            'assets/icons/cryingbaby.svg',
-                            width: 30.0,
-                            height: 60.0,
-                          ),
-                        const SizedBox(height: 40.0),
-                        if (_shoutingPet)
-                          const Icon(
-                            Icons.pets,
-                            size: 70.0,
-                            color: Colors.green,
-                          ),
-                        if (!_cryingBaby && !_shoutingPet)
+                        if (!_cryingBaby && !_shoutingPet && !_laughing)
                           const Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -272,6 +332,7 @@ class _SoundDetectionState extends State<SoundDetection> {
                 ),
               ],
             ),
+
           ],
         ),
       ),
