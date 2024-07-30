@@ -19,15 +19,18 @@ class SoundDetection extends StatefulWidget {
 
 class _SoundDetectionState extends State<SoundDetection> {
   bool _cryingBaby = false;
+  bool icryingBaby = false;
   bool _shoutingPet = false;
-  bool _laughing = false; // Added for laughing detection
+  bool ishoutingPet = false;
+  bool _laughing = false;
+  bool ilaughing = false;
   bool _isRegistering = true;
   bool _isRegistered = false;
   StreamSubscription<List<int>>? _micStreamSubscription;
   late MLSoundDetector _mlSoundDetector;
 
   bool _isCallActive = false;
-
+  String _detectedSound = ''; // New state variable for detected sound
 
   @override
   void initState() {
@@ -98,13 +101,16 @@ class _SoundDetectionState extends State<SoundDetection> {
       });
     });
   }
+
   void _loadPreferences() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _cryingBaby = prefs.getBool('cryingBaby') ?? false;
       _shoutingPet = prefs.getBool('Shouting-pet') ?? false;
-      _laughing = prefs.getBool('laughing') ?? false; // Load laughing preference
-
+      _laughing = prefs.getBool('laughing') ?? false;
+      icryingBaby = prefs.getBool('cryingBaby') ?? false;
+      ishoutingPet = prefs.getBool('Shouting-pet') ?? false;
+      ilaughing = prefs.getBool('laughing') ?? false;
     });
 
     _manageMicStream();
@@ -190,23 +196,19 @@ class _SoundDetectionState extends State<SoundDetection> {
         _laughing = result == MLSoundDetectConstants.SOUND_EVENT_TYPE_LAUGHTER;
 
         if (_cryingBaby) {
+          _detectedSound = 'Crying Baby';
           _showNotification('Sound Detected', 'Crying baby sound detected');
-        }
-
-        if (_shoutingPet) {
-          _showNotification('Sound Detected', 'Shouting pet sound detected');
-        }
-
-        if (_laughing) {
-          _showNotification('Sound Detected', 'Laughing sound detected');
-        }
-
-        if (_cryingBaby) {
           _startCall('cryingBaby');
         } else if (_shoutingPet) {
+          _detectedSound = 'Shouting Pet';
+          _showNotification('Sound Detected', 'Shouting pet sound detected');
           _startCall('shoutingPet');
         } else if (_laughing) {
+          _detectedSound = 'Laughing';
+          _showNotification('Sound Detected', 'Laughing sound detected');
           _startCall('laughing');
+        } else {
+          _detectedSound = ''; // Reset if no sound detected
         }
 
         _manageMicStream();
@@ -268,19 +270,19 @@ class _SoundDetectionState extends State<SoundDetection> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                if (_cryingBaby)
+                if (icryingBaby)
                   SvgPicture.asset(
                     'assets/icons/cryingbaby.svg',
                     width: 50.0,
                     height: 50.0,
                   ),
-                if (_shoutingPet)
+                if (ishoutingPet)
                   const Icon(
                     Icons.pets,
                     size: 50.0,
                     color: Colors.green,
                   ),
-                if (_laughing)
+                if (ilaughing)
                   const Icon(
                     Icons.sentiment_satisfied,
                     size: 50.0,
@@ -289,48 +291,67 @@ class _SoundDetectionState extends State<SoundDetection> {
               ],
             ),
             const SizedBox(height: 20.0),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  height: 230.0,
-                  width: 350,
-                  padding: const EdgeInsets.all(20.0),
-                  decoration: BoxDecoration(
-
-                    border: Border.all(color: Colors.blue, width: 10.0),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        if (!_cryingBaby && !_shoutingPet && !_laughing)
-                          const Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.error_outline,
-                                size: 80.0,
-                                color: Colors.red,
-                              ),
-                              SizedBox(height: 10.0),
-                              Text(
-                                'Detecting 0 sounds',
-                                style: TextStyle(
-                                  fontSize: 20.0,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                      ],
+            Container(
+              height: 230.0,
+              width: 350,
+              padding: const EdgeInsets.all(20.0),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.blue, width: 10.0),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Center(
+                child: _detectedSound.isNotEmpty
+                    ? Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (_detectedSound == 'Crying Baby')
+                      SvgPicture.asset(
+                        'assets/icons/cryingbaby.svg',
+                        width: 50.0,
+                        height: 50.0,
+                      ),
+                    if (_detectedSound == 'Shouting Pet')
+                      const Icon(
+                        Icons.pets,
+                        size: 50.0,
+                        color: Colors.green,
+                      ),
+                    if (_detectedSound == 'Laughing')
+                      const Icon(
+                        Icons.sentiment_satisfied,
+                        size: 50.0,
+                        color: Colors.yellow,
+                      ),
+                    const SizedBox(height: 10.0),
+                    Text(
+                      '$_detectedSound detected',
+                      style: const TextStyle(
+                        fontSize: 24.0,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
+                  ],
+                )
+                    : const Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 80.0,
+                      color: Colors.red,
+                    ),
+                    SizedBox(height: 10.0),
+                    Text(
+                      'No sound detected',
+                      style: TextStyle(
+                        fontSize: 20.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-
           ],
         ),
       ),
