@@ -1,13 +1,15 @@
-import 'dart:io';
-import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:mic_stream/mic_stream.dart';
-import 'package:flutter/services.dart';
-import 'package:huawei_ml_language/huawei_ml_language.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'dart:async';
+import 'dart:io';
+
 import 'package:abto_voip_sdk/sip_wrapper.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:huawei_ml_language/huawei_ml_language.dart';
+import 'package:mic_stream/mic_stream.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'Settings.dart';
 
 class SoundDetection extends StatefulWidget {
@@ -31,6 +33,7 @@ class _SoundDetectionState extends State<SoundDetection> {
 
   bool _isCallActive = false;
   String _detectedSound = ''; // New state variable for detected sound
+  final ValueNotifier<String> _registeration_status = ValueNotifier<String>("--");
 
   @override
   void initState() {
@@ -49,40 +52,38 @@ class _SoundDetectionState extends State<SoundDetection> {
 
     if (username.isEmpty || password.isEmpty || domain.isEmpty) {
       print('SIP registration details are missing');
+      _registeration_status.value = "SIP account not configured";
       return;
     }
 
     SipWrapper.wrapper.init();
 
     if (Platform.isAndroid) {
-      SipWrapper.wrapper.setLicense(
-          '{Trial0e81_Android-D249-144A-ABEB5BD1-B97D-484B-BFEA-DA604244101E}',
-          '{AufGKw0AgccH6hw/qP88p6K/O33xQGlwF3BCpGLzY6s9w2xzti0JHPOBe9saTPjoHPUnaRwHXO98OjA4bmx/Og==}'
-      );
+      SipWrapper.wrapper.setLicense('{Trial0e81_Android-D249-144A-ABEB5BD1-B97D-484B-BFEA-DA604244101E}',
+          '{AufGKw0AgccH6hw/qP88p6K/O33xQGlwF3BCpGLzY6s9w2xzti0JHPOBe9saTPjoHPUnaRwHXO98OjA4bmx/Og==}');
     } else if (Platform.isIOS) {
-      SipWrapper.wrapper.setLicense(
-          '{Trial0e81_iOS-D249-147A-BBEB5BD1-B97D-484B-BFEA-DA604244101E}',
-          '{Ix6BNIR+1jeZRkZ17CQ6LsHEgu9l7+md9CjIM0N94cbErGCcDS01hcEvCdfw6W4p037IkZpEwoCBfzUaMfYmZg==}'
-      );
+      SipWrapper.wrapper.setLicense('{Trial0e81_iOS-D249-147A-BBEB5BD1-B97D-484B-BFEA-DA604244101E}',
+          '{Ix6BNIR+1jeZRkZ17CQ6LsHEgu9l7+md9CjIM0N94cbErGCcDS01hcEvCdfw6W4p037IkZpEwoCBfzUaMfYmZg==}');
     }
 
-    SipWrapper.wrapper.register(
-        domain, '', username, password, '', 'Flutter_APP', 3600
-    );
-
+    SipWrapper.wrapper.register(domain, '', username, password, '', 'Flutter_APP', 3600);
+    _registeration_status.value = "SIP registering";
     SipWrapper.wrapper.registerListener = RegisterListener(onRegistered: () {
       print('SIP Registered successfully');
       setState(() {
         _isRegistered = true;
         _isRegistering = false;
+        _registeration_status.value = "SIP Registered";
       });
     }, onRegistrationFailed: () {
       print('SIP Registration failed');
+      _registeration_status.value = "SIP Registration failed";
       setState(() {
         _isRegistering = false;
       });
     }, onUnregistered: () {
       print('SIP Unregistered');
+      _registeration_status.value = "SIP Unregistered";
       setState(() {
         _isRegistered = false;
         _isRegistering = false;
@@ -93,11 +94,18 @@ class _SoundDetectionState extends State<SoundDetection> {
       print('Call connected with number: $number');
       setState(() {
         _isCallActive = true;
+        _registeration_status.value = "SIP on Active Call";
       });
     }, callDisconnected: () {
       print('Call disconnected');
       setState(() {
         _isCallActive = false;
+        if (_isRegistered)
+          _registeration_status.value = "SIP on Active Call";
+        else if (_isRegistering)
+          _registeration_status.value = "SIP Registering";
+        else
+          _registeration_status.value = "SIP Registeration failed";
       });
     });
   }
@@ -252,108 +260,116 @@ class _SoundDetectionState extends State<SoundDetection> {
         ],
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.earbuds_sharp, size: 40),
-                SizedBox(width: 10.0),
-                Text(
-                  'Listening for sounds...',
-                  style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20.0),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (icryingBaby)
-                  SvgPicture.asset(
-                    'assets/icons/cryingbaby.svg',
-                    width: 50.0,
-                    height: 50.0,
-                  ),
-                if (ishoutingPet)
-                  const Icon(
-                    Icons.pets,
-                    size: 50.0,
-                    color: Colors.green,
-                  ),
-                if (ilaughing)
-                  const Icon(
-                    Icons.sentiment_satisfied,
-                    size: 50.0,
-                    color: Colors.yellow,
-                  ),
-              ],
-            ),
-            const SizedBox(height: 20.0),
-            Container(
-              height: 230.0,
-              width: 350,
-              padding: const EdgeInsets.all(20.0),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.blue, width: 10.0),
-                borderRadius: BorderRadius.circular(20),
+        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
+          const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.earbuds_sharp, size: 40),
+              SizedBox(width: 10.0),
+              Text(
+                'Listening for sounds...',
+                style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
               ),
-              child: Center(
-                child: _detectedSound.isNotEmpty
-                    ? Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (_detectedSound == 'Crying Baby')
-                      SvgPicture.asset(
-                        'assets/icons/cryingbaby.svg',
-                        width: 50.0,
-                        height: 50.0,
-                      ),
-                    if (_detectedSound == 'Shouting Pet')
-                      const Icon(
-                        Icons.pets,
-                        size: 50.0,
-                        color: Colors.green,
-                      ),
-                    if (_detectedSound == 'Laughing')
-                      const Icon(
-                        Icons.sentiment_satisfied,
-                        size: 50.0,
-                        color: Colors.yellow,
-                      ),
-                    const SizedBox(height: 10.0),
-                    Text(
-                      '$_detectedSound detected',
-                      style: const TextStyle(
-                        fontSize: 24.0,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                )
-                    : const Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.error_outline,
-                      size: 80.0,
-                      color: Colors.red,
-                    ),
-                    SizedBox(height: 10.0),
-                    Text(
-                      'No sound detected',
-                      style: TextStyle(
-                        fontSize: 20.0,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
+            ],
+          ),
+          const SizedBox(height: 20.0),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (icryingBaby)
+                SvgPicture.asset(
+                  'assets/icons/cryingbaby.svg',
+                  width: 50.0,
+                  height: 50.0,
                 ),
-              ),
+              if (ishoutingPet)
+                const Icon(
+                  Icons.pets,
+                  size: 50.0,
+                  color: Colors.green,
+                ),
+              if (ilaughing)
+                const Icon(
+                  Icons.sentiment_satisfied,
+                  size: 50.0,
+                  color: Colors.yellow,
+                ),
+            ],
+          ),
+          const SizedBox(height: 20.0),
+          Container(
+            height: 230.0,
+            width: 350,
+            padding: const EdgeInsets.all(20.0),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.blue, width: 10.0),
+              borderRadius: BorderRadius.circular(20),
             ),
-          ],
-        ),
+            child: Center(
+              child: _detectedSound.isNotEmpty
+                  ? Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (_detectedSound == 'Crying Baby')
+                          SvgPicture.asset(
+                            'assets/icons/cryingbaby.svg',
+                            width: 50.0,
+                            height: 50.0,
+                          ),
+                        if (_detectedSound == 'Shouting Pet')
+                          const Icon(
+                            Icons.pets,
+                            size: 50.0,
+                            color: Colors.green,
+                          ),
+                        if (_detectedSound == 'Laughing')
+                          const Icon(
+                            Icons.sentiment_satisfied,
+                            size: 50.0,
+                            color: Colors.yellow,
+                          ),
+                        const SizedBox(height: 10.0),
+                        Text(
+                          '$_detectedSound detected',
+                          style: const TextStyle(
+                            fontSize: 24.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    )
+                  : const Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 80.0,
+                          color: Colors.red,
+                        ),
+                        SizedBox(height: 10.0),
+                        Text(
+                          'No sound detected',
+                          style: TextStyle(
+                            fontSize: 20.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+            ),
+          ),
+          const SizedBox(height: 20.0),
+          ValueListenableBuilder<String >(
+            valueListenable: _registeration_status,
+            builder: (BuildContext context, String value,child) {
+              return Text(
+                '$value',
+               // style: Theme.of(context).textTheme.headline4,
+              );
+            },
+          ),
+         // Text(_registeration_status.value),
+        ]),
       ),
     );
   }
