@@ -74,14 +74,7 @@ class _SoundDetectionState extends State<SoundDetection> {
   }
 
   void _registerSip(String username, String password, String domain) {
-    SipWrapper.wrapper.register(
-        domain,
-        '',
-        username,
-        password,
-        '',
-        'Flutter_APP',
-        3600);
+    SipWrapper.wrapper.register(domain, '', username, password, '', 'Flutter_APP', 3600);
     _registerationStatus.value = "SIP registering";
 
     SipWrapper.wrapper.registerListener = RegisterListener(
@@ -338,54 +331,54 @@ class _SoundDetectionState extends State<SoundDetection> {
             child: Center(
               child: _detectedSound.isNotEmpty
                   ? Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (_detectedSound == 'Crying Baby')
-                    SvgPicture.asset(
-                      'assets/icons/cryingbaby.svg',
-                      width: 50.0,
-                      height: 50.0,
-                    ),
-                  if (_detectedSound == 'Shouting Pet')
-                    const Icon(
-                      Icons.pets,
-                      size: 50.0,
-                      color: Colors.green,
-                    ),
-                  if (_detectedSound == 'Laughing')
-                    const Icon(
-                      Icons.sentiment_satisfied,
-                      size: 50.0,
-                      color: Colors.yellow,
-                    ),
-                  const SizedBox(height: 10.0),
-                  Text(
-                    '$_detectedSound detected',
-                    style: const TextStyle(
-                      fontSize: 24.0,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              )
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (_detectedSound == 'Crying Baby')
+                          SvgPicture.asset(
+                            'assets/icons/cryingbaby.svg',
+                            width: 50.0,
+                            height: 50.0,
+                          ),
+                        if (_detectedSound == 'Shouting Pet')
+                          const Icon(
+                            Icons.pets,
+                            size: 50.0,
+                            color: Colors.green,
+                          ),
+                        if (_detectedSound == 'Laughing')
+                          const Icon(
+                            Icons.sentiment_satisfied,
+                            size: 50.0,
+                            color: Colors.yellow,
+                          ),
+                        const SizedBox(height: 10.0),
+                        Text(
+                          '$_detectedSound detected',
+                          style: const TextStyle(
+                            fontSize: 24.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    )
                   : const Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    size: 80.0,
-                    color: Colors.red,
-                  ),
-                  SizedBox(height: 10.0),
-                  Text(
-                    'No sound detected',
-                    style: TextStyle(
-                      fontSize: 20.0,
-                      fontWeight: FontWeight.bold,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 80.0,
+                          color: Colors.red,
+                        ),
+                        SizedBox(height: 10.0),
+                        Text(
+                          'No sound detected',
+                          style: TextStyle(
+                            fontSize: 20.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
             ),
           ),
           const SizedBox(height: 80.0),
